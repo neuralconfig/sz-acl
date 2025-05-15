@@ -1,0 +1,73 @@
+[
+  {
+    "description": "Allow specific TCP subnet traffic",
+    "enableSourceIpSubnet": true,
+    "sourceIp": "172.17.26.55",
+    "sourceIpMask": "255.255.255.0",
+    "enableSourcePortRange": false,
+    "sourceMinPort": 80,
+    "destinationIp": "172.17.26.60",
+    "destinationIpMask": "255.255.0.0",
+    "protocol": "TCP",
+    "action": "ALLOW",
+    "direction": "DUAL"
+  },
+  {
+    "description": "Block specific UDP subnet traffic",
+    "enableSourceIpSubnet": true,
+    "sourceIp": "192.168.1.0",
+    "sourceIpMask": "255.255.255.0",
+    "destinationIp": "10.0.0.0",
+    "destinationIpMask": "255.0.0.0",
+    "protocol": "UDP",
+    "action": "BLOCK",
+    "direction": "INBOUND"
+  },
+  {
+    "description": "Allow ICMP traffic",
+    "enableSourceIpSubnet": true,
+    "sourceIp": "0.0.0.0",
+    "sourceIpMask": "0.0.0.0",
+    "destinationIp": "0.0.0.0",
+    "destinationIpMask": "0.0.0.0",
+    "protocol": "ICMP_ICMPV4",
+    "action": "ALLOW",
+    "direction": "DUAL"
+  },
+  {
+    "description": "Allow HTTP traffic to web servers",
+    "enableSourceIpSubnet": false,
+    "enableDestinationIpSubnet": true,
+    "destinationIp": "192.168.10.0",
+    "destinationIpMask": "255.255.255.0",
+    "enableDestinationPortRange": true,
+    "destinationMinPort": 80,
+    "destinationMaxPort": 80,
+    "protocol": "TCP",
+    "action": "ALLOW",
+    "direction": "INBOUND"
+  },
+  {
+    "description": "Allow HTTPS traffic to web servers",
+    "enableSourceIpSubnet": false,
+    "enableDestinationIpSubnet": true,
+    "destinationIp": "192.168.10.0",
+    "destinationIpMask": "255.255.255.0",
+    "enableDestinationPortRange": true,
+    "destinationMinPort": 443,
+    "destinationMaxPort": 443,
+    "protocol": "TCP",
+    "action": "ALLOW",
+    "direction": "INBOUND"
+  },
+  {
+    "description": "Block telnet traffic",
+    "enableSourceIpSubnet": false,
+    "enableDestinationPortRange": true,
+    "destinationMinPort": 23,
+    "destinationMaxPort": 23,
+    "protocol": "TCP",
+    "action": "BLOCK",
+    "direction": "DUAL"
+  }
+]
