@@ -1,0 +1,8 @@
+description,protocol,action,direction,sourceIp,sourceIpMask,enableSourceIpSubnet,destinationIp,destinationIpMask,enableDestinationIpSubnet,sourceMinPort,sourceMaxPort,enableSourcePortRange,destinationMinPort,destinationMaxPort,enableDestinationPortRange,customProtocol
+Allow specific TCP subnet traffic,TCP,ALLOW,DUAL,172.17.26.55,255.255.255.0,TRUE,172.17.26.60,255.255.0.0,FALSE,80,,FALSE,,,,
+Block specific UDP subnet traffic,UDP,BLOCK,INBOUND,192.168.1.0,255.255.255.0,TRUE,10.0.0.0,255.0.0.0,FALSE,,,,,,, 
+Allow HTTPS traffic to web servers,TCP,ALLOW,INBOUND,,,FALSE,192.168.10.0,255.255.255.0,TRUE,,,,440,443,TRUE,
+Block telnet traffic,TCP,BLOCK,DUAL,,,FALSE,,,FALSE,,,,23,,FALSE,
+Allow ICMP traffic,ICMP_ICMPV4,ALLOW,DUAL,,,TRUE,,,TRUE,,,,,,, 
+Allow SSH to admin servers,TCP,ALLOW,INBOUND,,,FALSE,192.168.20.0,255.255.255.0,TRUE,,,,22,,FALSE,
+Custom protocol example,CUSTOM,ALLOW,DUAL,10.0.0.0,255.0.0.0,TRUE,,,FALSE,,,,,,FALSE,47

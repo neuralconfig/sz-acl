@@ -1,0 +1,81 @@
+{
+  "startTime": "2025-04-08T16:43:49.852775",
+  "host": "vsz36.ruckusdemos.net",
+  "domain": "pomona1",
+  "rulesFile": "acl_rules_template.csv",
+  "maxPolicies": 65,
+  "prefix": "test",
+  "startIndex": 1,
+  "policies": [
+    {
+      "name": "test001",
+      "success": true,
+      "id": "2ca77552-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:50.005992"
+    },
+    {
+      "name": "test002",
+      "success": true,
+      "id": "2d124512-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:50.695648"
+    },
+    {
+      "name": "test003",
+      "success": true,
+      "id": "2d76fa51-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:51.368337"
+    },
+    {
+      "name": "test004",
+      "success": true,
+      "id": "2ddce812-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:52.030750"
+    },
+    {
+      "name": "test005",
+      "success": true,
+      "id": "2e40da02-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:52.674725"
+    },
+    {
+      "name": "test006",
+      "success": true,
+      "id": "2ea456c2-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:53.325842"
+    },
+    {
+      "name": "test007",
+      "success": true,
+      "id": "2f069b02-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:53.973379"
+    },
+    {
+      "name": "test008",
+      "success": true,
+      "id": "2f69f0b2-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:54.634044"
+    },
+    {
+      "name": "test009",
+      "success": true,
+      "id": "2fcecd02-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:55.283437"
+    },
+    {
+      "name": "test010",
+      "success": true,
+      "id": "3033f772-14ba-11f0-a35f-8a31d86e8550",
+      "timestamp": "2025-04-08T16:43:55.966739"
+    },
+    {
+      "name": "test011",
+      "success": false,
+      "id": null,
+      "timestamp": "2025-04-08T16:43:56.606968"
+    }
+  ],
+  "totalCreated": 10,
+  "status": "stopped_on_error",
+  "totalErrors": 1,
+  "endTime": "2025-04-08T16:43:56.607005"
+}
