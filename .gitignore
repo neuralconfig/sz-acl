@@ -19,6 +19,9 @@ ENV/
 *.swp
 *.swo
 
+# macOS system files
+.DS_Store
+
 # Generated files
 l3_acl_policy_*.json
 CLAUDE.md
