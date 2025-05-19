@@ -56,14 +56,14 @@ with open('test_wildcard_rules.json', 'w') as f:
 print("Test wildcard rules saved to test_wildcard_rules.json")
 print("Wildcard site files are available at:")
 print("  - wildcard_sites_numeric.csv: 42 sites with numeric octets")
-print("  - wildcard_sites_alpha.csv: 3 sites (A, B, C) with octets 10, 20, 30")
+print("  - wildcard_sites_alpha.csv: 3 sites (test1, test2, test3) with octets 10, 20, 30")
 
 print("\nExample usage with wildcard-file:")
 print("python create_l3_acl.py --host <host> --username <user> --password <pass> --rule-file test_wildcard_rules.json --wildcard-file wildcard_sites_alpha.csv")
 print("\nThis will create 3 policies:")
-print("  - 'Site A' with octet 10")
-print("  - 'Site B' with octet 20")
-print("  - 'Site C' with octet 30")
+print("  - 'test1' with octet 10")
+print("  - 'test2' with octet 20")
+print("  - 'test3' with octet 30")
 
 print("\nOr using the large site list:")
 print("python create_l3_acl.py --host <host> --username <user> --password <pass> --rule-file test_wildcard_rules.json --wildcard-file wildcard_sites_numeric.csv")

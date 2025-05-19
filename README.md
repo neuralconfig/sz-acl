@@ -215,9 +215,9 @@ The `--wildcard-file` option allows you to create multiple ACL policies from a s
 ##### Wildcard File Format:
 ```csv
 name,octet
-"Site A",10
-"Site B",20
-"Site C",30
+"test1",10
+"test2",20
+"test3",30
 ```
 
 ##### Example:
@@ -226,9 +226,9 @@ python create_l3_acl.py --host <hostname> --username <username> --password <pass
 ```
 
 This will create three policies:
-- "Site A" with octet value 10 (replacing all "X" with "10")
-- "Site B" with octet value 20 (replacing all "X" with "20")
-- "Site C" with octet value 30 (replacing all "X" with "30")
+- "test1" with octet value 10 (replacing all "X" with "10")
+- "test2" with octet value 20 (replacing all "X" with "20")
+- "test3" with octet value 30 (replacing all "X" with "30")
 
 The feature allows efficient deployment of standardized ACL policies across multiple sites with different subnet numbering.
 
