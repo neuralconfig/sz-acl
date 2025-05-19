@@ -232,24 +232,51 @@ This will create three policies:
 
 The feature allows efficient deployment of standardized ACL policies across multiple sites with different subnet numbering.
 
-## Example Script
+## Cleanup Tool
 
-The included `example.py` script demonstrates how to use the library programmatically. It performs the following actions:
+The `cleanup_test_acls.py` script provides a way to clean up L3 ACL policies that match a specified pattern. This is particularly useful after running scale tests or creating multiple policies with the wildcard feature.
 
-1. Lists available domains
-2. Lists existing L3 ACL policies
-3. Creates a new L3 ACL policy with example rules
-4. Retrieves the created policy
-5. Updates the policy with a new rule
-6. Optionally deletes the policy
+### Key Features
 
-To run the example:
+* Delete policies based on a regex pattern matching the policy name
+* Delete policies based on IDs in a previously saved results file
+* Limit the number of policies to delete in a single run
+* Configurable delay between deletions to avoid overloading the controller
+
+### Usage
 
 ```bash
-python example.py
+python cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "test-acl-" --domain <domain_name>
 ```
 
-Make sure to update the variables at the top of the script with your SmartZone controller details before running.
+Optional arguments:
+- `--pattern`: Regex pattern to match policy names (default: `^test\d+$`)
+- `--results-file`: JSON file containing test results to delete
+- `--max-deletions`: Maximum number of policies to delete
+- `--delay`: Delay between policy deletions in seconds (default: 0.5)
+- `--force`: Do not ask for confirmation before deleting
+
+### Naming Convention for Easy Cleanup
+
+To make it easier to clean up policies after testing, it's recommended to follow a consistent naming convention. By default, the cleanup script will match policy names that:
+
+1. Start with "test" followed by one or more digits (matching the default pattern `^test\d+$`)
+2. Examples: "test1", "test42", "test123"
+
+When creating test policies, you can choose to:
+
+1. Use this default pattern (e.g., "test1", "test2", "test3")
+2. Specify your own pattern when running the cleanup script
+
+For example, if you use a different naming scheme:
+
+```bash
+# Delete all policies that start with "testsite-"
+python cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "^testsite-.*$"
+
+# Delete all policies matching the pattern "acl-test-*"
+python cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "^acl-test-.*$"
+```
 
 ## Supported Rule Parameters
 
