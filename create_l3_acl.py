@@ -244,7 +244,7 @@ def main():
     parser.add_argument('--username', required=True, help='SmartZone admin username')
     parser.add_argument('--password', required=True, help='SmartZone admin password')
     parser.add_argument('--domain', help='Domain name (optional - if not specified, no domain will be included in the request)')
-    parser.add_argument('--name', required=True, help='Name for the L3 ACL policy')
+    parser.add_argument('--name', help='Name for the L3 ACL policy')
     parser.add_argument('--description', help='Description for the L3 ACL policy')
     parser.add_argument('--default-action', choices=['ALLOW', 'BLOCK'], default='ALLOW', 
                         help='Default action for the policy (default: ALLOW)')
@@ -253,8 +253,48 @@ def main():
     parser.add_argument('--api-version', default='v13_0', help='API version to use (default: v13_0)')
     parser.add_argument('--show-domains', action='store_true', help='Show available domains')
     parser.add_argument('--wildcard', type=int, help='Replace X in IP addresses with this octet value (0-255)')
+    parser.add_argument('--wildcard-file', help='CSV file with site names and octets in format: name,octet')
     
     args = parser.parse_args()
+    
+    # Check if --name is provided when not using wildcard-file
+    if not args.wildcard_file and not args.name:
+        parser.error("--name is required when not using --wildcard-file")
+    
+    # Check for mutually exclusive arguments
+    if args.wildcard is not None and args.wildcard_file:
+        parser.error("--wildcard and --wildcard-file cannot be used together")
+    
+    # Process wildcard file if specified
+    wildcard_entries = []
+    if args.wildcard_file:
+        try:
+            import csv
+            with open(args.wildcard_file, 'r', newline='') as f:
+                reader = csv.DictReader(f)
+                if 'name' not in reader.fieldnames or 'octet' not in reader.fieldnames:
+                    parser.error(f"Wildcard file must have 'name' and 'octet' columns")
+                wildcard_entries = list(reader)
+                
+                if not wildcard_entries:
+                    parser.error(f"Wildcard file {args.wildcard_file} has no entries")
+                
+                # Validate octets
+                for entry in wildcard_entries:
+                    try:
+                        octet = int(entry['octet'])
+                        if octet < 0 or octet > 255:
+                            parser.error(f"Octet value {octet} in wildcard file is out of range (0-255)")
+                    except ValueError:
+                        parser.error(f"Invalid octet value '{entry['octet']}' in wildcard file")
+                
+                print(f"Loaded {len(wildcard_entries)} site entries from {args.wildcard_file}")
+                for entry in wildcard_entries:
+                    print(f"  - {entry['name']}: {entry['octet']}")
+        except FileNotFoundError:
+            parser.error(f"Wildcard file {args.wildcard_file} not found")
+        except Exception as e:
+            parser.error(f"Error reading wildcard file: {str(e)}")
     
     # Initialize API handler
     vsz = vSZ_calls()
@@ -365,18 +405,13 @@ def main():
                 print(f"Error loading rules from {args.rule_file}: {str(e)}")
                 print("Will continue with empty rule list.")
         
-        # Apply wildcard replacement if specified
-        if args.wildcard is not None:
-            if args.wildcard < 0 or args.wildcard > 255:
-                print(f"Error: Wildcard value must be between 0 and 255 (got {args.wildcard})")
-                vsz.deleteToken(args.host, token)
-                sys.exit(1)
-            
-            wildcard_str = str(args.wildcard)
+        # Function to apply wildcard replacement
+        def apply_wildcard_replacement(rules, wildcard_value):
+            wildcard_str = str(wildcard_value)
             print(f"Applying wildcard replacement: X -> {wildcard_str}")
             
-            # Process each rule in the rule list
-            for rule in payload.get("l3AclRuleList", []):
+            replacements_count = 0
+            for rule in rules:
                 # Replace X in source IP
                 if "sourceIp" in rule and rule["sourceIp"]:
                     original_ip = rule["sourceIp"]
@@ -384,6 +419,7 @@ def main():
                     if original_ip != new_ip:
                         rule["sourceIp"] = new_ip
                         print(f"  Replaced sourceIp: {original_ip} -> {new_ip}")
+                        replacements_count += 1
                 
                 # Replace X in destination IP
                 if "destinationIp" in rule and rule["destinationIp"]:
@@ -392,13 +428,77 @@ def main():
                     if original_ip != new_ip:
                         rule["destinationIp"] = new_ip
                         print(f"  Replaced destinationIp: {original_ip} -> {new_ip}")
+                        replacements_count += 1
+            
+            return replacements_count
+        
+        # Apply wildcard replacement if using the --wildcard argument
+        if args.wildcard is not None:
+            if args.wildcard < 0 or args.wildcard > 255:
+                print(f"Error: Wildcard value must be between 0 and 255 (got {args.wildcard})")
+                vsz.deleteToken(args.host, token)
+                sys.exit(1)
+            
+            apply_wildcard_replacement(payload.get("l3AclRuleList", []), args.wildcard)
+            
+        # Apply wildcard replacement if using the --wildcard-file argument
+        if args.wildcard_file:
+            # We'll create a policy for each entry in the wildcard file
+            for entry in wildcard_entries:
+                site_name = entry['name'].strip('"')  # Remove quotes if present
+                octet_value = int(entry['octet'])
+                
+                # Make a deep copy of the original payload
+                import copy
+                site_payload = copy.deepcopy(payload)
+                
+                # Set the policy name to the site name
+                site_payload["name"] = site_name
+                
+                # Apply the wildcard replacement
+                print(f"\nProcessing site: {site_name} with octet: {octet_value}")
+                replacements = apply_wildcard_replacement(site_payload.get("l3AclRuleList", []), octet_value)
+                
+                if replacements == 0:
+                    print(f"Warning: No IP replacements were made for site {site_name}. Make sure your rules contain 'X' or 'x' in IP addresses.")
+                
+                if args.debug:
+                    print(f"\nL3 ACL Policy payload for {site_name}:")
+                    print(json.dumps(site_payload, indent=2))
+                
+                # Create L3 ACL Policy for this site
+                print(f"Creating L3 ACL Policy for {site_name}...")
+                response = vsz.createL3ACLPolicy(args.host, token, site_payload)
+                
+                # Check response
+                if response.status_code == 201 or response.status_code == 200:
+                    policy_result = response.json()
+                    policy_id = policy_result.get('id')
+                    print(f"\nL3 ACL Policy for {site_name} created successfully!")
+                    print(f"Policy ID: {policy_id}")
+                    
+                    # Save policy ID to file
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"l3_acl_policy_{site_name.replace(' ', '_')}_{timestamp}.json"
+                    with open(filename, 'w') as f:
+                        json.dump({"id": policy_id, "payload": site_payload}, f, indent=2)
+                    print(f"Policy details saved to {filename}")
+                    
+                else:
+                    print(f"\nError creating L3 ACL Policy for {site_name}!")
+                    print(f"Status code: {response.status_code}")
+                    print(f"Response: {response.text}")
+            
+            # Return early since we've already processed all sites
+            vsz.deleteToken(args.host, token)
+            return
         
         if args.debug:
             print("\nL3 ACL Policy payload:")
             print(json.dumps(payload, indent=2))
         
         # Create L3 ACL Policy
-        print("Creating L3 ACL Policy...")
+        print(f"Creating L3 ACL Policy: {payload['name']}...")
         response = vsz.createL3ACLPolicy(args.host, token, payload)
         
         # Check response
@@ -410,7 +510,8 @@ def main():
             
             # Save policy ID to file
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"l3_acl_policy_{args.name.replace(' ', '_')}_{timestamp}.json"
+            policy_name = payload['name'].replace(' ', '_')
+            filename = f"l3_acl_policy_{policy_name}_{timestamp}.json"
             with open(filename, 'w') as f:
                 json.dump({"id": policy_id, "payload": payload}, f, indent=2)
             print(f"\nPolicy details saved to {filename}")

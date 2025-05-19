@@ -81,6 +81,7 @@ Optional arguments:
 - `--api-version`: API version to use (default: v13_0)
 - `--show-domains`: Show available domains
 - `--wildcard`: Replace X in IP addresses with specified octet value (0-255). For example, `--wildcard 48` will replace "10.X.200.128" with "10.48.200.128"
+- `--wildcard-file`: CSV file with site names and octets (format: name,octet). Creates multiple policies, one for each site in the file. When using this option, `--name` is not required.
 
 ### Retrieving L3 ACL Policies
 
@@ -180,14 +181,16 @@ Here's an example of a JSON rules file that can be used with the `--rule-file` p
 
 ### Wildcard Feature
 
-The `--wildcard` option allows you to use placeholder IP addresses in your rules and replace them with a specific octet at runtime. This is useful when managing ACL policies across multiple networks with similar structure but different subnet identifiers.
+The `--wildcard` and `--wildcard-file` options allow you to use placeholder IP addresses in your rules and replace them with specific octet values at runtime. This is useful when managing ACL policies across multiple networks with similar structure but different subnet identifiers.
 
-#### How it works:
+#### Single Wildcard Replacement
+
+##### How it works:
 - Use "X" (uppercase or lowercase) as a placeholder in IP addresses in your rule files
 - Specify the replacement octet value with `--wildcard` (0-255)
 - All instances of "X" or "x" in source and destination IP addresses will be replaced
 
-#### Example:
+##### Example:
 ```csv
 description,protocol,action,direction,sourceIp,sourceIpMask,enableSourceIpSubnet,destinationIp,destinationIpMask,enableDestinationIpSubnet,sourceMinPort,sourceMaxPort,enableSourcePortRange,destinationMinPort,destinationMaxPort,enableDestinationPortRange,customProtocol
 Proxies_new,TCP,ALLOW,INBOUND,,,FALSE,10.x.200.128,,FALSE,,,FALSE,8080,,FALSE,
@@ -198,6 +201,36 @@ When using `--wildcard 48`, the destination IP "10.x.200.128" becomes "10.48.200
 ```bash
 python create_l3_acl.py --host <hostname> --username <username> --password <password> --name "Network-48-Policy" --rule-file rules.csv --wildcard 48
 ```
+
+#### Bulk Wildcard Replacement
+
+The `--wildcard-file` option allows you to create multiple ACL policies from a single template, each with different octet values and policy names.
+
+##### How it works:
+- Create a CSV file with two columns: `name` and `octet`
+- Each row represents a site with its name and octet value
+- The script creates one policy per row, using the site name as the policy name and the octet value for replacement
+- When using `--wildcard-file`, the `--name` parameter is not required (and will be ignored)
+
+##### Wildcard File Format:
+```csv
+name,octet
+"test1",10
+"test2",20
+"test3",30
+```
+
+##### Example:
+```bash
+python create_l3_acl.py --host <hostname> --username <username> --password <password> --rule-file rules.csv --wildcard-file sites.csv
+```
+
+This will create three policies:
+- "test1" with octet value 10 (replacing all "X" with "10")
+- "test2" with octet value 20 (replacing all "X" with "20")
+- "test3" with octet value 30 (replacing all "X" with "30")
+
+The feature allows efficient deployment of standardized ACL policies across multiple sites with different subnet numbering.
 
 ## Example Script
 
