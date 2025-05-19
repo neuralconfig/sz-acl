@@ -24,4 +24,5 @@ ENV/
 
 # Generated files
 l3_acl_policy_*.json
+scale_test_results.json
 CLAUDE.md
