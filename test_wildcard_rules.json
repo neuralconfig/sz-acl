@@ -1,0 +1,53 @@
+[
+  {
+    "description": "Test rule with wildcard in source IP",
+    "protocol": "TCP",
+    "action": "ALLOW",
+    "direction": "INBOUND",
+    "sourceIp": "10.X.100.0",
+    "sourceIpMask": "255.255.255.0",
+    "enableSourceIpSubnet": true,
+    "destinationIp": "192.168.1.0",
+    "destinationIpMask": "255.255.255.0",
+    "enableDestinationIpSubnet": true
+  },
+  {
+    "description": "Test rule with wildcard in destination IP",
+    "protocol": "TCP",
+    "action": "ALLOW",
+    "direction": "INBOUND",
+    "sourceIp": "192.168.1.0",
+    "sourceIpMask": "255.255.255.0",
+    "enableSourceIpSubnet": true,
+    "destinationIp": "10.x.200.128",
+    "destinationIpMask": "255.255.255.255",
+    "enableDestinationIpSubnet": false,
+    "destinationMinPort": 8080,
+    "destinationMaxPort": 8080,
+    "enableDestinationPortRange": false
+  },
+  {
+    "description": "Test rule with wildcard in both IPs",
+    "protocol": "UDP",
+    "action": "ALLOW",
+    "direction": "DUAL",
+    "sourceIp": "172.X.0.0",
+    "sourceIpMask": "255.255.0.0",
+    "enableSourceIpSubnet": true,
+    "destinationIp": "172.X.100.0",
+    "destinationIpMask": "255.255.255.0",
+    "enableDestinationIpSubnet": true
+  },
+  {
+    "description": "Test rule without wildcards",
+    "protocol": "TCP",
+    "action": "ALLOW",
+    "direction": "INBOUND",
+    "sourceIp": "10.0.0.0",
+    "sourceIpMask": "255.0.0.0",
+    "enableSourceIpSubnet": true,
+    "destinationIp": "192.168.10.0",
+    "destinationIpMask": "255.255.255.0",
+    "enableDestinationIpSubnet": true
+  }
+]

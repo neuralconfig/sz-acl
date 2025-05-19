@@ -252,6 +252,7 @@ def main():
     parser.add_argument('--debug', action='store_true', help='Enable debug output')
     parser.add_argument('--api-version', default='v13_0', help='API version to use (default: v13_0)')
     parser.add_argument('--show-domains', action='store_true', help='Show available domains')
+    parser.add_argument('--wildcard', type=int, help='Replace X in IP addresses with this octet value (0-255)')
     
     args = parser.parse_args()
     
@@ -363,6 +364,34 @@ def main():
             except Exception as e:
                 print(f"Error loading rules from {args.rule_file}: {str(e)}")
                 print("Will continue with empty rule list.")
+        
+        # Apply wildcard replacement if specified
+        if args.wildcard is not None:
+            if args.wildcard < 0 or args.wildcard > 255:
+                print(f"Error: Wildcard value must be between 0 and 255 (got {args.wildcard})")
+                vsz.deleteToken(args.host, token)
+                sys.exit(1)
+            
+            wildcard_str = str(args.wildcard)
+            print(f"Applying wildcard replacement: X -> {wildcard_str}")
+            
+            # Process each rule in the rule list
+            for rule in payload.get("l3AclRuleList", []):
+                # Replace X in source IP
+                if "sourceIp" in rule and rule["sourceIp"]:
+                    original_ip = rule["sourceIp"]
+                    new_ip = original_ip.replace("x", wildcard_str).replace("X", wildcard_str)
+                    if original_ip != new_ip:
+                        rule["sourceIp"] = new_ip
+                        print(f"  Replaced sourceIp: {original_ip} -> {new_ip}")
+                
+                # Replace X in destination IP
+                if "destinationIp" in rule and rule["destinationIp"]:
+                    original_ip = rule["destinationIp"]
+                    new_ip = original_ip.replace("x", wildcard_str).replace("X", wildcard_str)
+                    if original_ip != new_ip:
+                        rule["destinationIp"] = new_ip
+                        print(f"  Replaced destinationIp: {original_ip} -> {new_ip}")
         
         if args.debug:
             print("\nL3 ACL Policy payload:")
