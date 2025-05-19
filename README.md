@@ -80,6 +80,7 @@ Optional arguments:
 - `--debug`: Enable debug output
 - `--api-version`: API version to use (default: v13_0)
 - `--show-domains`: Show available domains
+- `--wildcard`: Replace X in IP addresses with specified octet value (0-255). For example, `--wildcard 48` will replace "10.X.200.128" with "10.48.200.128"
 
 ### Retrieving L3 ACL Policies
 
@@ -175,6 +176,27 @@ Here's an example of a JSON rules file that can be used with the `--rule-file` p
     "direction": "INBOUND"
   }
 ]
+```
+
+### Wildcard Feature
+
+The `--wildcard` option allows you to use placeholder IP addresses in your rules and replace them with a specific octet at runtime. This is useful when managing ACL policies across multiple networks with similar structure but different subnet identifiers.
+
+#### How it works:
+- Use "X" (uppercase or lowercase) as a placeholder in IP addresses in your rule files
+- Specify the replacement octet value with `--wildcard` (0-255)
+- All instances of "X" or "x" in source and destination IP addresses will be replaced
+
+#### Example:
+```csv
+description,protocol,action,direction,sourceIp,sourceIpMask,enableSourceIpSubnet,destinationIp,destinationIpMask,enableDestinationIpSubnet,sourceMinPort,sourceMaxPort,enableSourcePortRange,destinationMinPort,destinationMaxPort,enableDestinationPortRange,customProtocol
+Proxies_new,TCP,ALLOW,INBOUND,,,FALSE,10.x.200.128,,FALSE,,,FALSE,8080,,FALSE,
+```
+
+When using `--wildcard 48`, the destination IP "10.x.200.128" becomes "10.48.200.128".
+
+```bash
+python create_l3_acl.py --host <hostname> --username <username> --password <password> --name "Network-48-Policy" --rule-file rules.csv --wildcard 48
 ```
 
 ## Example Script

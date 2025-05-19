@@ -1,0 +1,4 @@
+description,protocol,action,direction,sourceIp,sourceIpMask,enableSourceIpSubnet,destinationIp,destinationIpMask,enableDestinationIpSubnet,sourceMinPort,sourceMaxPort,enableSourcePortRange,destinationMinPort,destinationMaxPort,enableDestinationPortRange,customProtocol
+Test wildcard subnet,TCP,ALLOW,INBOUND,,,FALSE,10.x.200.128,,FALSE,,,FALSE,8080,,FALSE,
+Test wildcard source,TCP,ALLOW,DUAL,172.X.0.0,255.255.0.0,TRUE,192.168.1.0,255.255.255.0,TRUE,,,FALSE,,,FALSE,
+Test wildcard both IPs,UDP,ALLOW,DUAL,10.X.100.0,255.255.255.0,TRUE,10.X.200.0,255.255.255.0,TRUE,,,FALSE,,,FALSE,
