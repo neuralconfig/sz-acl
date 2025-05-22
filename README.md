@@ -1,22 +1,33 @@
 # SmartZoneACL
 
-A Python library and command-line tools for managing L3 Access Control Policies on Ruckus SmartZone controllers. Supports both JSON and CSV formats for defining ACL rules.
+A Python library and command-line tools for managing L3 Access Control Policies and Firewall Profiles on Ruckus SmartZone controllers. Supports both JSON and CSV formats for defining ACL rules.
 
 ## Overview
 
-SmartZoneACL allows you to create, retrieve, update, and delete Layer 3 Access Control Policies on Ruckus SmartZone controllers using the REST API. L3 ACL policies provide packet filtering capabilities based on IP addresses, protocols, and ports.
+SmartZoneACL allows you to create, retrieve, update, and delete Layer 3 Access Control Policies and Firewall Profiles on Ruckus SmartZone controllers using the REST API. L3 ACL policies provide packet filtering capabilities based on IP addresses, protocols, and ports, while Firewall Profiles provide comprehensive network security configurations that can include L3 ACL policies, rate limiting, and other security features.
 
 ## Features
 
+### L3 ACL Policy Management
 * Create new L3 ACL policies with rules
 * Retrieve existing L3 ACL policies
 * Update existing L3 ACL policies
 * Delete L3 ACL policies
 * List all L3 ACL policies in a domain
+
+### Firewall Profile Management
+* Create Firewall Profiles with embedded L3 ACL policies
+* Configure optional uplink/downlink rate limiting
+* Automatic L3 ACL policy creation and association
+* Bulk creation using wildcard files
+* Cleanup of both Firewall Profiles and associated L3 ACL policies
+
+### General Features
 * Command-line interface for all operations
 * Python API for programmatic use
 * Support for both JSON and CSV formats for defining ACL rules
 * CSV template for easy rule creation in Excel
+* Wildcard replacement for multi-site deployments
 
 ## Requirements
 
@@ -31,6 +42,31 @@ SmartZoneACL allows you to create, retrieve, update, and delete Layer 3 Access C
 
 ```bash
 pip install requests
+```
+
+## Quick Start
+
+### Creating a Firewall Profile with L3 ACL
+
+```bash
+# Create a firewall profile with L3 ACL policy from JSON rules
+python3 create_firewall_profile.py --host <hostname> --username <username> --password <password> --name "My Firewall Profile" --description "My description" --domain <domain_name> --rule-file rules.json
+
+# Create a firewall profile with rate limiting
+python3 create_firewall_profile.py --host <hostname> --username <username> --password <password> --name "Limited Profile" --domain <domain_name> --rule-file rules.csv --uplink-rate 100.0 --downlink-rate 50.0
+
+# Bulk creation using wildcard file
+python3 create_firewall_profile.py --host <hostname> --username <username> --password <password> --domain <domain_name> --rule-file template.csv --wildcard-file sites.csv
+```
+
+### Creating L3 ACL Policies Only
+
+```bash
+# Create L3 ACL policy from JSON rules
+python3 create_l3_acl.py --host <hostname> --username <username> --password <password> --name "My ACL Policy" --description "My description" --domain <domain_name> --rule-file rules.json
+
+# Create L3 ACL policy from CSV rules
+python3 create_l3_acl.py --host <hostname> --username <username> --password <password> --name "My ACL Policy" --description "My description" --domain <domain_name> --rule-file rules.csv
 ```
 
 ### CSV Format
@@ -52,30 +88,54 @@ The project includes a utility script for working with CSV files:
 
 ```bash
 # Create a CSV template file
-python csv_utils.py --create-template --output my_template.csv
+python3 csv_utils.py --create-template --output my_template.csv
 
 # Convert a CSV file to JSON
-python csv_utils.py --csv-to-json my_rules.csv --output my_rules.json
+python3 csv_utils.py --csv-to-json my_rules.csv --output my_rules.json
 
 # Convert a JSON file to CSV
-python csv_utils.py --json-to-csv my_rules.json --output my_rules.csv
+python3 csv_utils.py --json-to-csv my_rules.json --output my_rules.csv
 ```
 
 ## Command-line Usage
 
-### Creating L3 ACL Policies
+### Creating Firewall Profiles
+
+Create a Firewall Profile that automatically includes an L3 ACL policy:
 
 ```bash
-python create_l3_acl.py --host <hostname> --username <username> --password <password> --name "My ACL Policy" --description "My description" --domain <domain_name> --rule-file rules.json
+python3 create_firewall_profile.py --host <hostname> --username <username> --password <password> --name "My Firewall Profile" --description "My description" --domain <domain_name> --rule-file rules.json
 ```
 
 You can also use a CSV file for defining rules:
 
 ```bash
-python create_l3_acl.py --host <hostname> --username <username> --password <password> --name "My ACL Policy" --description "My description" --domain <domain_name> --rule-file rules.csv
+python3 create_firewall_profile.py --host <hostname> --username <username> --password <password> --name "My Firewall Profile" --description "My description" --domain <domain_name> --rule-file rules.csv
 ```
 
-Optional arguments:
+#### Firewall Profile Optional Arguments:
+- `--uplink-rate`: Uplink rate limiting in Mbps (optional)
+- `--downlink-rate`: Downlink rate limiting in Mbps (optional)
+- `--default-action`: Default action for the L3 ACL policy (ALLOW or BLOCK, default: ALLOW)
+- `--debug`: Enable debug output
+- `--api-version`: API version to use (default: v13_0)
+- `--show-domains`: Show available domains
+- `--wildcard`: Replace X in IP addresses with specified octet value (0-255)
+- `--wildcard-file`: CSV file with site names and octets (format: name,octet). Creates multiple firewall profiles, one for each site in the file
+
+### Creating L3 ACL Policies Only
+
+```bash
+python3 create_l3_acl.py --host <hostname> --username <username> --password <password> --name "My ACL Policy" --description "My description" --domain <domain_name> --rule-file rules.json
+```
+
+You can also use a CSV file for defining rules:
+
+```bash
+python3 create_l3_acl.py --host <hostname> --username <username> --password <password> --name "My ACL Policy" --description "My description" --domain <domain_name> --rule-file rules.csv
+```
+
+#### L3 ACL Optional Arguments:
 - `--default-action`: Default action for the policy (ALLOW or BLOCK, default: ALLOW)
 - `--debug`: Enable debug output
 - `--api-version`: API version to use (default: v13_0)
@@ -86,7 +146,7 @@ Optional arguments:
 ### Retrieving L3 ACL Policies
 
 ```bash
-python retrieve_l3_acls.py --host <hostname> --username <username> --password <password> --domain <domain_name>
+python3 retrieve_l3_acls.py --host <hostname> --username <username> --password <password> --domain <domain_name>
 ```
 
 Optional arguments:
@@ -199,7 +259,7 @@ Proxies_new,TCP,ALLOW,INBOUND,,,FALSE,10.x.200.128,,FALSE,,,FALSE,8080,,FALSE,
 When using `--wildcard 48`, the destination IP "10.x.200.128" becomes "10.48.200.128".
 
 ```bash
-python create_l3_acl.py --host <hostname> --username <username> --password <password> --name "Network-48-Policy" --rule-file rules.csv --wildcard 48
+python3 create_l3_acl.py --host <hostname> --username <username> --password <password> --name "Network-48-Policy" --rule-file rules.csv --wildcard 48
 ```
 
 #### Bulk Wildcard Replacement
@@ -222,7 +282,7 @@ name,octet
 
 ##### Example:
 ```bash
-python create_l3_acl.py --host <hostname> --username <username> --password <password> --rule-file rules.csv --wildcard-file sites.csv
+python3 create_l3_acl.py --host <hostname> --username <username> --password <password> --rule-file rules.csv --wildcard-file sites.csv
 ```
 
 This will create three policies:
@@ -232,24 +292,46 @@ This will create three policies:
 
 The feature allows efficient deployment of standardized ACL policies across multiple sites with different subnet numbering.
 
-## Cleanup Tool
+## Cleanup Tools
+
+### Firewall Profile Cleanup
+
+The `cleanup_test_firewall_profiles.py` script provides a way to clean up Firewall Profiles and their associated L3 ACL policies that match a specified pattern.
+
+```bash
+python3 cleanup_test_firewall_profiles.py --host <hostname> --username <username> --password <password> --pattern "test.*" --domain <domain_name>
+```
+
+#### Key Features
+* Delete firewall profiles based on a regex pattern matching the profile name
+* Automatically delete associated L3 ACL policies (can be disabled with `--keep-l3-acls`)
+* Delete profiles based on IDs in a previously saved results file
+* Limit the number of profiles to delete in a single run
+* Configurable delay between deletions to avoid overloading the controller
+
+#### Optional Arguments:
+- `--pattern`: Regex pattern to match profile names (default: `^test.*`)
+- `--results-file`: JSON file containing test results to delete
+- `--max-deletions`: Maximum number of profiles to delete
+- `--delay`: Delay between profile deletions in seconds (default: 0.5)
+- `--force`: Do not ask for confirmation before deleting
+- `--keep-l3-acls`: Do not delete associated L3 ACL policies
+
+### L3 ACL Policy Cleanup
 
 The `cleanup_test_acls.py` script provides a way to clean up L3 ACL policies that match a specified pattern. This is particularly useful after running scale tests or creating multiple policies with the wildcard feature.
 
-### Key Features
+```bash
+python3 cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "test-acl-" --domain <domain_name>
+```
 
+#### Key Features
 * Delete policies based on a regex pattern matching the policy name
 * Delete policies based on IDs in a previously saved results file
 * Limit the number of policies to delete in a single run
 * Configurable delay between deletions to avoid overloading the controller
 
-### Usage
-
-```bash
-python cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "test-acl-" --domain <domain_name>
-```
-
-Optional arguments:
+#### Optional Arguments:
 - `--pattern`: Regex pattern to match policy names (default: `^test\d+$`)
 - `--results-file`: JSON file containing test results to delete
 - `--max-deletions`: Maximum number of policies to delete
@@ -272,10 +354,10 @@ For example, if you use a different naming scheme:
 
 ```bash
 # Delete all policies that start with "testsite-"
-python cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "^testsite-.*$"
+python3 cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "^testsite-.*$"
 
 # Delete all policies matching the pattern "acl-test-*"
-python cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "^acl-test-.*$"
+python3 cleanup_test_acls.py --host <hostname> --username <username> --password <password> --pattern "^acl-test-.*$"
 ```
 
 ## Supported Rule Parameters
