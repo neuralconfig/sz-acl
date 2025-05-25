@@ -24,10 +24,12 @@ SmartZoneACL allows you to create, retrieve, update, and delete Layer 3 Access C
 
 ### General Features
 * Command-line interface for all operations
+* Web application interface (deployable to Google Cloud)
 * Python API for programmatic use
 * Support for both JSON and CSV formats for defining ACL rules
 * CSV template for easy rule creation in Excel
 * Wildcard replacement for multi-site deployments
+* Cleanup utilities for bulk deletion with pattern matching
 
 ## Requirements
 
@@ -344,6 +346,43 @@ To make it easier to clean up policies after testing, it's recommended to follow
 
 1. Start with "test" followed by one or more digits (matching the default pattern `^test\d+$`)
 2. Examples: "test1", "test42", "test123"
+
+## Web Application
+
+SmartZoneACL includes a web application interface that can be run locally or deployed to Google Cloud Platform.
+
+### Features
+* User-friendly web interface for creating firewall profiles
+* CSV template downloads with proper formatting
+* Interactive domain selection
+* Bulk profile creation with wildcard CSV files
+* Cleanup functionality with pattern matching
+* Real-time error feedback from API
+* neural[config] themed UI
+
+### Local Development
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the Flask development server
+python3 app.py
+```
+
+Visit http://localhost:8080 to access the web interface.
+
+### Google Cloud Deployment
+The application is configured for deployment on Google App Engine (free tier):
+
+```bash
+# Deploy to App Engine
+./deploy.sh
+
+# Or manually
+gcloud app deploy app.yaml --project YOUR_PROJECT_ID
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions including custom domain setup.
 
 When creating test policies, you can choose to:
 

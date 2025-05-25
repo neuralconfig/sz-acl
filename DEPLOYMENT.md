@@ -58,6 +58,8 @@ gcloud app deploy app.yaml
 gcloud app browse
 ```
 
+**Note**: The application includes `main.py` as an entry point for gunicorn, which is required for App Engine deployment.
+
 ## Configuration
 
 ### Environment Variables
@@ -73,11 +75,44 @@ echo "env_variables:" >> app.yaml
 echo "  SECRET_KEY: 'your-generated-secret-key'" >> app.yaml
 ```
 
-### Custom Domain (Optional)
+### Custom Domain
 
-1. Go to [App Engine Settings](https://console.cloud.google.com/appengine/settings)
-2. Click "Custom domains"
-3. Follow the verification process
+To use a custom domain (e.g., szacl.yourdomain.com):
+
+#### 1. Add CNAME Record
+In your domain registrar (e.g., Namecheap):
+- Type: `CNAME`
+- Host: `szacl` (or your chosen subdomain)
+- Value: `ghs.googlehosted.com`
+- TTL: Automatic
+
+#### 2. Create Domain Mapping
+```bash
+# Add custom domain to App Engine
+gcloud app domain-mappings create szacl.yourdomain.com
+
+# Check domain mapping status
+gcloud app domain-mappings describe szacl.yourdomain.com
+```
+
+#### 3. Verify Domain (if needed)
+If prompted, add the TXT record to your DNS:
+- For root domain verification: Host = `@`
+- For subdomain verification: Host = subdomain name
+
+#### 4. SSL Certificate
+Google automatically provisions and manages SSL certificates:
+- No manual configuration needed
+- Usually ready within 15-60 minutes
+- Check status in `sslSettings` when describing domain mapping
+
+#### 5. Verify DNS
+```bash
+# Check CNAME record
+dig +short szacl.yourdomain.com CNAME
+
+# Should return: ghs.googlehosted.com.
+```
 
 ## Free Tier Limits
 
@@ -154,6 +189,18 @@ gcloud beta billing projects describe YOUR_PROJECT_ID
 # Check App Engine service account permissions
 gcloud projects get-iam-policy YOUR_PROJECT_ID
 ```
+
+#### ModuleNotFoundError
+If you see "ModuleNotFoundError" in logs:
+- Ensure all required Python files are included in deployment
+- Check `.gcloudignore` file - it should NOT exclude files imported by the app
+- Required files: `app.py`, `main.py`, `create_firewall_profile.py`, `csv_utils.py`
+
+#### 502 Bad Gateway
+If you get 502 errors:
+- Check logs: `gcloud app logs tail -s default`
+- Ensure `main.py` exists as the entry point
+- Verify `app.yaml` has: `entrypoint: gunicorn -b :$PORT main:app`
 
 ### Application Errors
 
