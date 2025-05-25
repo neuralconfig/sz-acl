@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartZone Firewall Profile Creator - NeuralConfig</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    
+    <div class="container">
+        <header class="fade-in">
+            <h1>SmartZone Firewall Profile Creator</h1>
+            <p class="subtitle">Create L3 ACL policies and firewall profiles via SmartZone API</p>
+        </header>
+
+        <main class="fade-in-delay">
+            <form id="profileForm" class="profile-form">
+                <!-- Credentials Section -->
+                <section class="form-section">
+                    <h2>SmartZone Credentials</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="hostname">Hostname/IP</label>
+                            <input type="text" id="hostname" name="hostname" required 
+                                   placeholder="e.g., 192.168.1.100">
+                        </div>
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" required 
+                                   placeholder="admin">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="domain">Domain (Optional)</label>
+                            <div class="input-with-button">
+                                <input type="text" id="domain" name="domain" 
+                                       placeholder="Select or enter domain">
+                                <button type="button" id="listDomainsBtn" class="secondary-btn">
+                                    List Domains
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Profile Configuration -->
+                <section class="form-section">
+                    <h2>Profile Configuration</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="profile_name">Profile Name</label>
+                            <input type="text" id="profile_name" name="profile_name" 
+                                   placeholder="Required for single profile">
+                            <small>Not required when using wildcard file</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text" id="description" name="description" 
+                                   placeholder="Optional description">
+                        </div>
+                        <div class="form-group">
+                            <label for="default_action">Default Action</label>
+                            <select id="default_action" name="default_action">
+                                <option value="ALLOW">ALLOW</option>
+                                <option value="BLOCK">BLOCK</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rate Limiting -->
+                <section class="form-section">
+                    <h2>Rate Limiting (Optional)</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="uplink_rate">Uplink Rate (Mbps)</label>
+                            <input type="number" id="uplink_rate" name="uplink_rate" 
+                                   min="0.1" max="200" step="0.1" placeholder="0.1-200">
+                        </div>
+                        <div class="form-group">
+                            <label for="downlink_rate">Downlink Rate (Mbps)</label>
+                            <input type="number" id="downlink_rate" name="downlink_rate" 
+                                   min="0.1" max="200" step="0.1" placeholder="0.1-200">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- File Uploads -->
+                <section class="form-section">
+                    <h2>Rule Files</h2>
+                    <div class="template-downloads">
+                        <a href="/templates/rules" class="download-link">
+                            📥 Download Rules Template (CSV)
+                        </a>
+                        <a href="/templates/wildcard" class="download-link">
+                            📥 Download Wildcard Sites Template (CSV)
+                        </a>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="rules_file">ACL Rules File (Required)
+                                <span class="tooltip">ⓘ
+                                    <span class="tooltip-text">
+                                        CSV Format Tips:<br>
+                                        • <b>For "any":</b> Leave IP/port cells blank (not 0.0.0.0)<br>
+                                        • <b>Single ports:</b> set min=max and enablePortRange=false<br>
+                                        • <b>Port ranges:</b> set different min/max and enablePortRange=true<br>
+                                        • <b>Single IPs:</b> use /32 mask (e.g., 192.168.1.1/255.255.255.255)<br>
+                                        • <b>Subnets:</b> use appropriate mask and enableSubnet=true<br>
+                                        • Use uppercase for protocols: TCP, UDP, etc.<br>
+                                        • Use 'X' in IP addresses for wildcard replacement<br>
+                                        • Leave protocol empty for "any protocol"
+                                    </span>
+                                </span>
+                            </label>
+                            <input type="file" id="rules_file" name="rules_file" 
+                                   accept=".csv,.json" required>
+                            <small>Upload CSV or JSON file with ACL rules</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="wildcard_file">Wildcard Sites File (Optional)
+                                <span class="tooltip">ⓘ
+                                    <span class="tooltip-text">
+                                        Wildcard File Usage:<br>
+                                        • Creates multiple firewall profiles from one rule template<br>
+                                        • CSV must have 'name' and 'octet' columns<br>
+                                        • Each row creates a separate profile<br>
+                                        • The 'name' becomes the profile name<br>
+                                        • The 'octet' replaces all 'X' in IP addresses<br>
+                                        • Example: X in 192.168.X.0 becomes the octet value<br>
+                                        • Profile name not required when using this file
+                                    </span>
+                                </span>
+                            </label>
+                            <input type="file" id="wildcard_file" name="wildcard_file" 
+                                   accept=".csv">
+                            <small>Upload CSV for multiple site profiles</small>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Submit Button -->
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn" id="submitBtn">
+                        <span class="btn-text">Create Firewall Profile(s)</span>
+                        <div class="spinner" style="display: none;"></div>
+                    </button>
+                    <button type="button" class="secondary-btn" id="cleanupBtn">
+                        <span class="btn-text">Cleanup Profiles</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Results Section -->
+            <div id="results" class="results-section" style="display: none;">
+                <h2>Results</h2>
+                <div id="resultsContent"></div>
+            </div>
+        </main>
+
+        <footer class="fade-in-delay">
+            <p>Powered by <a href="https://www.neuralconfig.com" target="_blank">neural[config]</a></p>
+        </footer>
+    </div>
+
+    <!-- Domain Selection Modal -->
+    <div id="domainModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Select Domain</h3>
+            <div id="domainList" class="domain-list"></div>
+            <div class="modal-actions">
+                <button type="button" class="secondary-btn" onclick="closeDomainModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cleanup Modal -->
+    <div id="cleanupModal" class="modal" style="display: none;">
+        <div class="modal-content modal-wide">
+            <h3>Cleanup Firewall Profiles</h3>
+            
+            <div class="cleanup-options">
+                <div class="form-group">
+                    <label for="cleanupPattern">Filter Pattern (Regex)
+                        <span class="tooltip">ⓘ
+                            <span class="tooltip-text">
+                                Regex Examples:<br>
+                                • ^test.* - Profiles starting with "test"<br>
+                                • .*_temp$ - Profiles ending with "_temp"<br>
+                                • Site_[A-Z] - Matches Site_A, Site_B, etc.<br>
+                                • Leave blank to show all profiles
+                            </span>
+                        </span>
+                    </label>
+                    <input type="text" id="cleanupPattern" placeholder="e.g., ^test.*">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="deleteL3Acls" checked>
+                        Also delete associated L3 ACL policies
+                    </label>
+                </div>
+                <button type="button" class="secondary-btn" id="searchProfilesBtn">
+                    Search Profiles
+                </button>
+            </div>
+            
+            <div id="profilesList" class="profiles-list" style="display: none;">
+                <h4>Select profiles to delete:</h4>
+                <div class="select-all-wrapper">
+                    <label>
+                        <input type="checkbox" id="selectAllProfiles">
+                        Select All
+                    </label>
+                </div>
+                <div id="profilesCheckboxList"></div>
+            </div>
+            
+            <div id="cleanupResults" class="cleanup-results" style="display: none;"></div>
+            
+            <div class="modal-actions">
+                <button type="button" class="primary-btn" id="deleteSelectedBtn" style="display: none;">
+                    Delete Selected Profiles
+                </button>
+                <button type="button" class="secondary-btn" onclick="closeCleanupModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+# This file specifies files that are *not* uploaded to Google Cloud Platform
+# using gcloud. It follows the same syntax as .gitignore, with the addition of
+# "#!include" directives (which insert the entries of the given .gitignore-style
+# file at that point).
+
+.gcloudignore
+.git
+.gitignore
+
+# Python pycache:
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local test files
+*.log
+test_*.py
+cleanup_*.py
+example.py
+
+# Local configuration
+*.env
+.env.*
+
+# Temporary files
+*.tmp
+*.temp
+l3_acl_policy_*.json
+firewall_profile_*.json
+scale_test_results.json
+
+# Documentation (not needed for runtime)
+README.md
+DEPLOYMENT.md
+CLAUDE.md
+
+# Scripts not needed for web app
+create_l3_acl.py
+create_firewall_profile.py
+retrieve_l3_acls.py
+deploy.sh
+
+# Test data
+test_*.csv
+test_*.json
+example_rules.json
+wildcard_sites_alpha.csv

@@ -1,0 +1,30 @@
+# Google App Engine configuration for SmartZone Firewall Profile Creator
+runtime: python39
+
+# Instance class - using F1 (free tier eligible)
+instance_class: F1
+
+# Automatic scaling settings for free tier
+automatic_scaling:
+  max_instances: 1
+  min_instances: 0
+  max_idle_instances: 1
+  min_idle_instances: 0
+  target_cpu_utilization: 0.65
+  target_throughput_utilization: 0.65
+
+# Environment variables
+env_variables:
+  FLASK_ENV: "production"
+
+# Handlers for static files
+handlers:
+- url: /static
+  static_dir: static
+  expiration: "1h"
+
+- url: /.*
+  script: auto
+
+# Timeout for requests (max 60s for free tier)
+default_expiration: "0s"
